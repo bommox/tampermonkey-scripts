@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ExtJS Utils
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  Utils to inspect ExtJs components. Call cmp() or cmp('id-of-your-component') to see the info
 // @homepageURL  https://gist.github.com/bommox/568516a721c783f0a87d9bae1fb6f86e
 // @author       Jorge Blom
@@ -10,7 +10,7 @@
 // ==/UserScript==
 
 (function() {
-    console.log("ExtJS Utils! Call cmp().");
+    console.log("ExtJS Utils!");
     function cmp(id) {
         if (typeof(id) == "object" && Ext.getClassName(id) === "") {
             // Puede ser un DOM Element
