@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ExtJS Utils
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  Utils to inspect ExtJs components. Call cmp() or cmp('id-of-your-component') to see the info
 // @homepageURL  https://github.com/bommox/tampermonkey-scripts
 // @updateUrl    https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
@@ -33,8 +33,9 @@
     }
 
     function getParentComponent(domEl) {
-        if (domEl.getAttribute("data-componentid")) {
-            return domEl.getAttribute("data-componentid");
+        var c = domEl.getAttribute("data-componentid");
+        if (c && Ext.getClassName(Ext.getCmp(c)).indexOf("M.") > -1) {
+            return c;
         } else {
             return getParentComponent(domEl.parentNode);
         }
