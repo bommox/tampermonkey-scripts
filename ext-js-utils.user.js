@@ -3,10 +3,13 @@
 // @namespace    http://tampermonkey.net/
 // @version      0.2
 // @description  Utils to inspect ExtJs components. Call cmp() or cmp('id-of-your-component') to see the info
-// @homepageURL  https://gist.github.com/bommox/568516a721c783f0a87d9bae1fb6f86e
+// @homepageURL  https://github.com/bommox/tampermonkey-scripts
+// @updateUrl    https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
 // @author       Jorge Blom
 // @include      http*/mov/*
 // @include      http*/ria/*
+// @run-at      document-start
+// @grant       none
 // ==/UserScript==
 
 (function() {
