@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ExtJS Utils
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  Utils to inspect ExtJs components. Call cmp() or cmp('id-of-your-component') to see the info
 // @homepageURL  https://github.com/bommox/tampermonkey-scripts
 // @updateUrl    https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
