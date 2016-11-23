@@ -2,5 +2,5 @@
 
 ## ExtJS Component Utils
 
- https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.js
+ https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
 
