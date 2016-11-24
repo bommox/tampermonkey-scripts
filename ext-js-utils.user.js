@@ -2,7 +2,7 @@
 // @name         ExtJS Dev Tools Utils
 // @namespace    http://tampermonkey.net/
 // @version      0.7
-// @description  Utils to inspect ExtJs components. Call cmp() or cmp('id-of-your-component') to see the info
+// @description  Use the x() function to search for one or more extJs components. Try x("all")
 // @homepageURL  https://github.com/bommox/tampermonkey-scripts
 // @updateUrl    https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
 // @author       Jorge Blom (@bommox)
