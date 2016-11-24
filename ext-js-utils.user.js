@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ExtJS Dev Tools Utils
 // @namespace    http://tampermonkey.net/
-// @version      0.6
+// @version      0.7
 // @description  Utils to inspect ExtJs components. Call cmp() or cmp('id-of-your-component') to see the info
 // @homepageURL  https://github.com/bommox/tampermonkey-scripts
 // @updateUrl    https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
@@ -70,6 +70,7 @@
 
 
         if (typeof(id) == "string" ) {
+            id = id.replace("#","");
             var isAlias = Ext.ClassManager.getByAlias(id) != undefined;
             var isClass = Ext.ClassManager.get(id) != undefined;
             var resultCmp = Ext.getCmp(id);
