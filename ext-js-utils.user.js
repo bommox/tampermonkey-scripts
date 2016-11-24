@@ -53,6 +53,10 @@
         return cmp(id, prefix); 
     };
 
+    window[CMP_QUERY + "test"] = function() {
+        test();
+    }
+
     function getAllComponents() {
         return (Ext.ComponentManager.getAll)
             ? Ext.ComponentManager.getAll()
@@ -184,8 +188,8 @@
     function getControllers() {
         var app = getApplication();
         var result = {};
-        var controllers = (app.controllers) 
-            ? app.controllers
+        var controllers = (app.getControllers) 
+            ? app.getControllers()
             : app.controllers.items.map(c => Ext.getClassName(c));
         controllers.forEach(c => {
             try {
@@ -198,10 +202,28 @@
     function getStores() {
         var app = getApplication();
         var result = {};
-        app.getStores().forEach((s) => {
-            result[Ext.getClassName(s)] = s;
-        });
+        if (app.getStores) {
+            app.getStores().forEach(s => {
+                result[Ext.getClassName(s)] = s;
+            });
+        } else if (app.getStore && app.stores) {
+            app.stores.forEach(s => {
+                result[s] = app.getStore(s);
+            });
+        }
         return result;
+    }
+
+    function test() {
+        console.log("ExtJS Util TEST");
+        console.log("> Application");
+        console.log(getApplication());
+        console.log("> Controllers");
+        console.log(getControllers());
+        console.log("> Stores");
+        console.log(getStores());
+        console.log("> All components");
+        console.log(cmp());
     }
 
 })();
