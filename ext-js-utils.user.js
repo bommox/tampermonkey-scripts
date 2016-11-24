@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ExtJS Dev Tools Utils
 // @namespace    http://tampermonkey.net/
-// @version      0.5
+// @version      0.6
 // @description  Utils to inspect ExtJs components. Call cmp() or cmp('id-of-your-component') to see the info
 // @homepageURL  https://github.com/bommox/tampermonkey-scripts
 // @updateUrl    https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
@@ -49,12 +49,18 @@
         return cmp(id, prefix); 
     };
 
+    function getAllComponents() {
+        return (Ext.ComponentManager.getAll)
+            ? Ext.ComponentManager.getAll()
+            : Ext.ComponentManager.all.getArray();
+    }
+
  
     function cmp(id, classPrefix) {
 
         if (id === undefined) {
             // Lista todos los componentes 
-            var allComponents = Ext.ComponentManager.getAll();
+            var allComponents = getAllComponents();
             if (classPrefix) {
                 // Filtra por clase
                 allComponents = allComponents.filter((c) => c.$className.indexOf(classPrefix) === 0);
@@ -75,7 +81,7 @@
                 return getComponentDataArray(components);
             } else if (isClass) {
                 // Es una clase.
-                var classComponents = Ext.ComponentManager.getAll().filter((c) => c.$className == id);
+                var classComponents = getAllComponents().filter((c) => c.$className == id);
                 return getComponentDataArray(classComponents);          
             }
         }
