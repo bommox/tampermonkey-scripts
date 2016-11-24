@@ -6,6 +6,7 @@
 // @homepageURL  https://github.com/bommox/tampermonkey-scripts
 // @updateUrl    https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
 // @author       Jorge Blom (@bommox)
+// @include     http*
 // @run-at      document-end
 // @grant       none
 // ==/UserScript==
