@@ -18,7 +18,7 @@
         return;
     }
 
-    var CMP_QUERY           = "$x";
+    var CMP_QUERY           = "x";
 
     var WELCOME_MESSAGE = [
         '',

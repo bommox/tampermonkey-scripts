@@ -14,16 +14,16 @@ Just open this link and click on install:
 
 ### Usage
  
-Lookup one component  (stored in $x0  var):
+Lookup one component  (stored in x0  var):
 
-- By ID: Use $x("ext-field-5"). 
-- Containing DOM : Use $x($0).  $0 is the DOM element selected in dev tools.
-- Containing DOM, filter className: Use $x($0, "App").
+- By ID: Use `x("ext-field-5")`. 
+- Containing DOM : Use `x($0)`.  `$0` is the DOM element selected in dev tools.
+- Containing DOM, filter className: Use `x($0, "App")`.
 
 Get a list of components:
 
-- All components: $x("all"). 
-- All components, filter className: $x("all", "App"). 
-- By alias: $x("widget.text"). 
-- By className: $x("Ext.field.Text"). 
+- All components: `x("all")`. 
+- All components, filter className: `x("all", "App")`. 
+- By alias: `x("widget.text")`. 
+- By className: `x("Ext.field.Text")`. 
 
