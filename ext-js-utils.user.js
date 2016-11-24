@@ -1,63 +1,143 @@
 // ==UserScript==
-// @name         ExtJS Utils
+// @name         ExtJS Dev Tools Utils
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      0.5
 // @description  Utils to inspect ExtJs components. Call cmp() or cmp('id-of-your-component') to see the info
 // @homepageURL  https://github.com/bommox/tampermonkey-scripts
 // @updateUrl    https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
-// @author       Jorge Blom
-// @include      http*/mov/*
-// @include      http*/ria/*
-// @run-at      document-start
+// @author       Jorge Blom (@bommox)
+// @run-at      document-end
 // @grant       none
 // ==/UserScript==
 
 (function() {
-    console.log("ExtJS Utils!");
-    function cmp(id) {
-        if (typeof(id) == "object" && Ext.getClassName(id) === "") {
-            // Puede ser un DOM Element
-            return cmp(getParentComponent(id));
-        } else if (id) {
-            window.lcmp = Ext.getCmp(id); 
-            console.log(window.lcmp.$className);
-            if (window.lcmp.el) {
-                console.log(window.lcmp.el.dom); 
+
+    if (window.Ext === undefined) {
+        console.log("Tampermonkey ExtJS DEV TOOLS UTILS not used in this page. (no Ext found)");
+        return;
+    }
+
+    var CMP_QUERY           = "$x";
+
+    var WELCOME_MESSAGE = [
+        '',
+        ' ==============================================================',
+        '   ExtJS DEV TOOLS UTILS',
+        '   @Author: Jorge Blom (@bommox)',
+        ' --------------------------------------------------------------',
+        ' ',
+        ' Lookup one component  (stored in ' + CMP_QUERY +  '0  var):',
+        '    > By ID: Use ' + CMP_QUERY + '("ext-field-5"). ',
+        '    > Containing DOM : Use ' + CMP_QUERY + '($0).  $0 is the DOM element selected in dev tools.',
+        '    > Containing DOM, filter className: Use ' + CMP_QUERY + '($0, "App").',        
+        '  Get a list of components:',
+        '    > All components: ' + CMP_QUERY + '("all"). ',
+        '    > All components, filter className: ' + CMP_QUERY + '("all", "App"). ',
+        '    > By alias: ' + CMP_QUERY + '("widget.text"). ',
+        '    > By className: ' + CMP_QUERY + '("Ext.field.Text"). ',
+        ''
+
+    ].join("\n");
+
+    console.log(WELCOME_MESSAGE);
+
+    window[CMP_QUERY] = function(id, prefix) {
+        if (id == "all" || id == "ALL") {
+            id = undefined;
+        }
+        return cmp(id, prefix); 
+    };
+
+ 
+    function cmp(id, classPrefix) {
+
+        if (id === undefined) {
+            // Lista todos los componentes 
+            var allComponents = Ext.ComponentManager.getAll();
+            if (classPrefix) {
+                // Filtra por clase
+                allComponents = allComponents.filter((c) => c.$className.indexOf(classPrefix) === 0);
             }
-            return window.lcmp;
-
-        } else {
-            return printCmp();
+            return getComponentDataArray(allComponents);
         }
 
+
+        if (typeof(id) == "string" ) {
+            var isAlias = Ext.ClassManager.getByAlias(id) != undefined;
+            var isClass = Ext.ClassManager.get(id) != undefined;
+            var resultCmp = Ext.getCmp(id);
+            if (resultCmp) {
+                return selectCmp(resultCmp);
+            } else if (isAlias) {
+                // Es un alias
+                var components = Ext.ComponentQuery.query(id);
+                return getComponentDataArray(components);
+            } else if (isClass) {
+                // Es una clase.
+                var classComponents = Ext.ComponentManager.getAll().filter((c) => c.$className == id);
+                return getComponentDataArray(classComponents);          
+            }
+        }
+
+        if (Ext.getClassName(Ext.get(id)) == "Ext.dom.Element") {
+            // Es un elemento DOM
+            // Se busca su padre
+            var resultCmp = getParentComponent(id, classPrefix);
+            if (resultCmp) {
+                return selectCmp(resultCmp);
+            }
+        }
+        
+        return undefined;    
     }
 
-    function getParentComponent(domEl) {
-        var c = domEl.getAttribute("data-componentid");
-        if (c && Ext.getClassName(Ext.getCmp(c)).indexOf("M.") > -1) {
-            return c;
+    function selectCmp(cmp) {
+        var data = getComponentData(cmp);
+        console.log("#" + data.id + " " + data.alias + " [" + data.$class + "]");
+        console.log(data);
+        var storedName = CMP_QUERY +  '0';
+        window[storedName] = cmp;
+        console.log(" - Component stored in " + storedName + " var.");
+        return cmp;
+    }
+
+    function getParentComponent(domEl, classPrefix) {
+        var cid;
+        try {
+            cid = domEl.getAttribute("data-componentid");
+        } catch(e) {
+            return undefined;
+        }
+        var cmp;
+        if (cid) {
+            cmp = Ext.getCmp(cid)
+        }
+        if (cmp && (!classPrefix || Ext.getClassName(cmp).indexOf(classPrefix) > -1 )) {
+            return cmp;
         } else {
-            return getParentComponent(domEl.parentNode);
+            return getParentComponent(domEl.parentNode, classPrefix);
         }
     }
 
-    function printCmp() {
+
+    function getComponentData(cmp) {
+        return {
+            alias :  cmp.alias && cmp.alias[0],
+            id : cmp.id,
+            $class : cmp.$className,
+            dom : cmp.el && cmp.el.dom,
+            cmp : cmp
+        }
+    }
+
+    function getComponentDataArray(cmpArray) {
         var result = {};
-        $$("[data-componentid]").forEach((el) =>  {
-            var id = el.getAttribute("data-componentid");
-            var cmp = Ext.getCmp(id);
-            var data = {
-                alias : cmp.alias,
-                id : id,
-                $class :  Ext.getClassName(cmp),
-                dom : el,
-                cmp : cmp
-            };
-            result[data.$class + "#" + id] = data;
+        console.log(cmpArray.length + " components");
+        cmpArray.forEach(function(cmp) {
+            var data = getComponentData(cmp);
+            result["[" + data.alias + "] " + "#" + data.id] = data;
         });
         return result;
     }
-    
-    window.cmp = cmp;
 
 })();
