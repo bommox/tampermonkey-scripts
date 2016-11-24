@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ExtJS Dev Tools Utils
 // @namespace    http://tampermonkey.net/
-// @version      0.8
+// @version      0.9
 // @description  Use the x() function to search for one or more extJs components. Try x("all")
 // @homepageURL  https://github.com/bommox/tampermonkey-scripts
 // @updateUrl    https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
