@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ExtJS Dev Tools Utils
 // @namespace    http://tampermonkey.net/
-// @version      0.7
+// @version      0.8
 // @description  Use the x() function to search for one or more extJs components. Try x("all")
 // @homepageURL  https://github.com/bommox/tampermonkey-scripts
 // @updateUrl    https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
@@ -27,7 +27,7 @@
         '   @Author: Jorge Blom (@bommox)',
         ' --------------------------------------------------------------',
         ' ',
-        ' Lookup one component  (stored in ' + CMP_QUERY +  '0  var):',
+        '  Lookup one component  (stored in ' + CMP_QUERY +  '0  var):',
         '    > By ID: Use ' + CMP_QUERY + '("ext-field-5"). ',
         '    > Containing DOM : Use ' + CMP_QUERY + '($0).  $0 is the DOM element selected in dev tools.',
         '    > Containing DOM, filter className: Use ' + CMP_QUERY + '($0, "App").',        
@@ -36,6 +36,10 @@
         '    > All components, filter className: ' + CMP_QUERY + '("all", "App"). ',
         '    > By alias: ' + CMP_QUERY + '("widget.text"). ',
         '    > By className: ' + CMP_QUERY + '("Ext.field.Text"). ',
+        '  Get Application objects ',
+        '    > Get application instance: ' + CMP_QUERY + '("application"). ',
+        '    > Get controllers: ' + CMP_QUERY + '("controllers"). ',
+        '    > Get stores: ' + CMP_QUERY + '("stores"). ',
         ''
 
     ].join("\n");
@@ -72,14 +76,20 @@
         if (typeof(id) == "string" ) {
             id = id.replace("#","");
             var isAlias = Ext.ClassManager.getByAlias(id) != undefined;
+            if (isAlias) {
+                // Se resuelve la clase
+                id = Ext.getClassName(Ext.ClassManager.getByAlias(id));
+            }
             var isClass = Ext.ClassManager.get(id) != undefined;
             var resultCmp = Ext.getCmp(id);
             if (resultCmp) {
                 return selectCmp(resultCmp);
-            } else if (isAlias) {
-                // Es un alias
-                var components = Ext.ComponentQuery.query(id);
-                return getComponentDataArray(components);
+            } else if (id == "stores") {
+                return getStores();
+            } else if (id == "controllers") {
+                return getControllers();
+            } else if (id == "application") {
+                return getApplication();
             } else if (isClass) {
                 // Es una clase.
                 var classComponents = getAllComponents().filter((c) => c.$className == id);
@@ -144,6 +154,52 @@
         cmpArray.forEach(function(cmp) {
             var data = getComponentData(cmp);
             result["[" + data.alias + "] " + "#" + data.id] = data;
+        });
+        return result;
+    }
+
+    function getApplication() {
+        var app;        
+        Ext.ClassManager.names && Ext.ClassManager.names.forEach(function(n) {
+           if (window[n] && window[n].app && window[n].app.controllers) {
+               app = window[n].app;
+           } 
+        });
+        if (!app) {
+            Object.keys(Ext.ClassManager.classes)
+                .filter((k) => k.indexOf("Ext") == -1)
+                .map((k) => k.substr(0, k.indexOf(".")))
+                .reduce((a,b) => (a.indexOf(b) == -1) ? (a + "," + b) :  a)
+                .split(",").filter(v => v.length > 0)
+                .forEach(prefix => {
+                    if (window[prefix] && window[prefix].app && window[prefix].app.$className == "Ext.app.Application") {
+                        app = window[prefix].app;
+                    }
+                });
+        }
+        
+        return app;
+    }
+
+    function getControllers() {
+        var app = getApplication();
+        var result = {};
+        var controllers = (app.controllers) 
+            ? app.controllers
+            : app.controllers.items.map(c => Ext.getClassName(c));
+        controllers.forEach(c => {
+            try {
+                result[c] = app.getController(c);
+            } catch (e) {  }
+        });
+        return result;
+    }
+
+    function getStores() {
+        var app = getApplication();
+        var result = {};
+        app.getStores().forEach((s) => {
+            result[Ext.getClassName(s)] = s;
         });
         return result;
     }

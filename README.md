@@ -27,3 +27,8 @@ Get a list of components:
 - By alias: `x("widget.text")`. 
 - By className: `x("Ext.field.Text")`. 
 
+Get ExtJS application instances:
+
+- Get application: `x("application")`
+- Get stores: `x("stores")`
+- Get controllers: `x("controllers")`
