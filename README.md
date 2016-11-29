@@ -13,6 +13,8 @@ Just open this link and click on install:
  https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
 
 ### Usage
+
+- `x('help')` to get options.
  
 Lookup one component  (stored in x0  var):
 

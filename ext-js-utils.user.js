@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ExtJS Dev Tools Utils
 // @namespace    http://tampermonkey.net/
-// @version      0.9
+// @version      0.10
 // @description  Use the x() function to search for one or more extJs components. Try x("all")
 // @homepageURL  https://github.com/bommox/tampermonkey-scripts
 // @updateUrl    https://raw.githubusercontent.com/bommox/tampermonkey-scripts/master/ext-js-utils.user.js
@@ -26,6 +26,11 @@
         '   ExtJS DEV TOOLS UTILS',
         '   @Author: Jorge Blom (@bommox)',
         ' --------------------------------------------------------------',
+        '  To see available options type',
+        '  > x("help")'
+    ].join("\n");
+
+    var HELP_MESSAGE = [
         ' ',
         '  Lookup one component  (stored in ' + CMP_QUERY +  '0  var):',
         '    > By ID: Use ' + CMP_QUERY + '("ext-field-5"). ',
@@ -43,6 +48,11 @@
         ''
 
     ].join("\n");
+
+    function help() {
+        console.log(WELCOME_MESSAGE);
+        console.log(HELP_MESSAGE);
+    }
 
     console.log(WELCOME_MESSAGE);
 
@@ -78,6 +88,11 @@
 
 
         if (typeof(id) == "string" ) {
+            if (id == "help") {
+                help();
+                return;
+            }
+
             id = id.replace("#","");
             var isAlias = Ext.ClassManager.getByAlias(id) != undefined;
             if (isAlias) {
@@ -89,11 +104,11 @@
             if (resultCmp) {
                 return selectCmp(resultCmp);
             } else if (id == "stores") {
-                return getStores();
+                return storeVar(getStores());
             } else if (id == "controllers") {
-                return getControllers();
+                return storeVar(getControllers());
             } else if (id == "application") {
-                return getApplication();
+                return storeVar(getApplication());
             } else if (isClass) {
                 // Es una clase.
                 var classComponents = getAllComponents().filter((c) => c.$className == id);
@@ -109,17 +124,24 @@
                 return selectCmp(resultCmp);
             }
         }
+        console.warn("No component found... here is the documentation:");
+        help();
         
         return undefined;    
+    }
+
+    function storeVar(value) {
+        var storedName = CMP_QUERY +  '0';
+        window[storedName] = value;
+        console.debug("Object " + Ext.getClassName(value) + " stored in " + storedName);
+        return value;
     }
 
     function selectCmp(cmp) {
         var data = getComponentData(cmp);
         console.log("#" + data.id + " " + data.alias + " [" + data.$class + "]");
         console.log(data);
-        var storedName = CMP_QUERY +  '0';
-        window[storedName] = cmp;
-        console.log(" - Component stored in " + storedName + " var.");
+        storeVar(data);
         return cmp;
     }
 
@@ -141,19 +163,23 @@
         }
     }
 
+    function newObject() {
+        return Object.create(null);
+    }
+
 
     function getComponentData(cmp) {
-        return {
-            alias :  cmp.alias && cmp.alias[0],
-            id : cmp.id,
-            $class : cmp.$className,
-            dom : cmp.el && cmp.el.dom,
-            cmp : cmp
-        }
+        var result = newObject();
+        result.alias = cmp.alias && cmp.alias[0];        
+        result.id = cmp.id,
+        result.$class = cmp.$className,
+        result.dom = cmp.el && cmp.el.dom,
+        result.cmp = cmp
+        return result;
     }
 
     function getComponentDataArray(cmpArray) {
-        var result = {};
+        var result = newObject();
         console.log(cmpArray.length + " components");
         cmpArray.forEach(function(cmp) {
             var data = getComponentData(cmp);
@@ -187,7 +213,7 @@
 
     function getControllers() {
         var app = getApplication();
-        var result = {};
+        var result = newObject();
         var controllers = (app.getControllers) 
             ? app.getControllers()
             : app.controllers.items.map(c => Ext.getClassName(c));
@@ -201,7 +227,7 @@
 
     function getStores() {
         var app = getApplication();
-        var result = {};
+        var result = newObject();
         if (app.getStores) {
             app.getStores().forEach(s => {
                 result[Ext.getClassName(s)] = s;
