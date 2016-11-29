@@ -18,6 +18,8 @@
         return;
     }
 
+    var isExt6 = Ext.getVersion().major > 5;
+
     var CMP_QUERY           = "x";
 
     var WELCOME_MESSAGE = [
@@ -57,23 +59,66 @@
         test();
     }
 
+/*
     function getAllComponents() {
         return (Ext.ComponentManager.getAll)
             ? Ext.ComponentManager.getAll()
             : Ext.ComponentManager.all.getArray();
     }
+*/
 
+    function queryComponents(classPrefix, startNode) {
+        var components;
+        if (isExt6) {
+            components =  $$("[data-componentid]", startNode || document)
+                .map(el => Ext.getCmp(el.getAttribute("data-componentid")));           
+
+        } else {
+            components =  (Ext.ComponentManager.getAll)
+                ? Ext.ComponentManager.getAll()
+                : Ext.ComponentManager.all.getArray();
+        }
+        if (classPrefix) {
+            components = components
+                .filter(cmp => (classPrefix) ? Ext.getClassName(cmp).indexOf(classPrefix) === 0 : true);
+        }
+        return components;
+
+    }
+
+
+    function getUpComponents(classPrefix, startNode) {
+        var components = [];
+        
+
+        if (startNode && startNode.parentNode) {
+            var doIterate = true;
+            var domEl = startNode.parentNode;
+            var lastC;
+            var i = 0;
+            while(doIterate && domEl && i++ < 100) {
+                var pc = getParentComponent(domEl, classPrefix);
+                if (pc) {
+                    console.log("pc.id -> " + pc.id);
+                    components.push(pc);
+                    domEl = (pc == lastC) ? domEl.parentNode : pc.el && pc.el.dom;
+                    lastC = pc;
+                } else {
+                    doIterate = false;
+                }
+            }
+            // getParentComponent(domEl, classPrefix)
+
+
+        }
+        return components;
+    }
  
     function cmp(id, classPrefix) {
 
         if (id === undefined) {
             // Lista todos los componentes 
-            var allComponents = getAllComponents();
-            if (classPrefix) {
-                // Filtra por clase
-                allComponents = allComponents.filter((c) => c.$className.indexOf(classPrefix) === 0);
-            }
-            return getComponentDataArray(allComponents);
+            return getComponentDataArray(queryComponents(classPrefix), classPrefix);
         }
 
 
@@ -96,8 +141,8 @@
                 return getApplication();
             } else if (isClass) {
                 // Es una clase.
-                var classComponents = getAllComponents().filter((c) => c.$className == id);
-                return getComponentDataArray(classComponents);          
+                var classComponents = queryComponents().filter((c) => c.$className == id);
+                return getComponentDataArray(classComponents, classPrefix);          
             }
         }
 
@@ -124,6 +169,10 @@
     }
 
     function getParentComponent(domEl, classPrefix) {
+        if (!isExt6) {
+            console.error("This feature does not work in this Ext version.");
+            return;
+        }
         var cid;
         try {
             cid = domEl.getAttribute("data-componentid");
@@ -142,23 +191,36 @@
     }
 
 
-    function getComponentData(cmp) {
+    function getComponentData(cmp, prefix) {
+        if (!cmp) {
+            return undefined;
+        }
+        var dom = cmp.el && cmp.el.dom;
+        var children = (dom) ? getComponentDataArray(queryComponents(prefix, dom), prefix, true) : undefined;
+        if (children && Object.keys(children).length == 0) {
+            children = undefined;
+        }
         return {
             alias :  cmp.alias && cmp.alias[0],
             id : cmp.id,
             $class : cmp.$className,
-            dom : cmp.el && cmp.el.dom,
+            dom : dom,
+          //  up : (noTree) ? "..." : getComponentDataArray(up(cmp), true),
+            children: children,
             cmp : cmp
         }
     }
 
-    function getComponentDataArray(cmpArray) {
-        var result = {};
-        console.log(cmpArray.length + " components");
-        cmpArray.forEach(function(cmp) {
-            var data = getComponentData(cmp);
-            result["[" + data.alias + "] " + "#" + data.id] = data;
-        });
+    function getComponentDataArray(cmpArray, prefix, avoidCount) {
+        var result = undefined;
+        if (cmpArray) {
+            result = {};
+            if (!avoidCount) console.log(cmpArray.length + " components");
+            cmpArray.forEach(function(cmp) {
+                var data = getComponentData(cmp, prefix);
+                result["[" + data.alias + "] " + "#" + data.id] = data;
+            });
+        }
         return result;
     }
 
@@ -213,6 +275,7 @@
         }
         return result;
     }
+    
 
     function test() {
         console.log("ExtJS Util TEST");
